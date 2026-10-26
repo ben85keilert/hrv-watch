@@ -1,0 +1,14 @@
+# Android / Gradle / Android Studio
+build/
+.gradle/
+.idea/
+*.iml
+local.properties
+*.keystore
+*.jks
+.cxx/
+captures/
+# Python (spätere Flet-Erweiterung)
+.venv/
+__pycache__/
+*.egg-info/
