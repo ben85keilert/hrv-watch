@@ -4,7 +4,8 @@ Android zeigt für eine aktive ``MediaSession`` Titel, Interpret und Album in de
 Mediensteuerung, und Galaxy Wearable reicht sie an die Galaxy Fit3 weiter (Befund
 hrv-watch/docs/TESTPLAN_fit3.md, 26.10.2026). Die Zeilen sind frei: Hier stehen
 HF, RMSSD und Intervall-Kennzahlen darin. Die Tasten des Bands (▶ ◀ ⏯) kommen als
-``on_taste`` zurück.
+``on_taste`` zurück. ``warnen`` schickt eine Benachrichtigung (Gurt prüfen), die das
+Band mit Vibration zeigt.
 
 Die Session lebt im App-Prozess (kein eigener Dienst); am Leben hält den Prozess
 der Vordergrunddienst der Messung (flet_ble). Es läuft kein Ton: Der Zustand
@@ -76,6 +77,13 @@ class FletMedien(ft.Service):
     async def beenden(self) -> None:
         """Session freigeben, Benachrichtigung weg — das Band zeigt nichts mehr."""
         await self._invoke_method("beenden", None, timeout=_FRIST)
+
+    async def warnen(self, titel: str, text: str) -> None:
+        """Eine Warnung als eigene Benachrichtigung (Kanal „Warnungen“, hohe Wichtigkeit):
+        das Band vibriert und zeigt sie, wenn Galaxy Wearable Benachrichtigungen der App
+        durchlässt. Verschwindet nach einer Minute von selbst. Unabhängig von der Session —
+        geht auch ohne ``starten``."""
+        await self._invoke_method("warnen", {"titel": titel, "text": text}, timeout=_FRIST)
 
     async def aktiv(self) -> bool:
         """Gibt es gerade eine Session?"""

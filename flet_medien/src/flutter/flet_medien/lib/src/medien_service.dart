@@ -7,7 +7,8 @@ import 'package:flutter/services.dart';
 /// (Kanal `flet_medien/session`) und meldet Tasten als Ereignis `taste` an Python.
 ///
 /// Methoden (Python → Dart → Java): `starten` {titel, zeile2, zeile3, laeuft},
-/// `zeigen` {titel, zeile2, zeile3}, `zustand` {laeuft}, `beenden`, `aktiv` → bool.
+/// `zeigen` {titel, zeile2, zeile3}, `zustand` {laeuft}, `beenden`, `aktiv` → bool,
+/// `warnen` {titel, text} (Benachrichtigung mit Vibration).
 /// Außerhalb von Android tun die Methoden nichts (kein Fehler), `aktiv` ist false.
 class FletMedienService extends FletService {
   FletMedienService({required super.control});
@@ -48,6 +49,12 @@ class FletMedienService extends FletService {
             "zustand", {"laeuft": a["laeuft"] as bool? ?? true});
       case "beenden":
         await _kanal.invokeMethod<void>("beenden");
+        return null;
+      case "warnen":
+        await _kanal.invokeMethod<void>("warnen", {
+          "titel": a["titel"] as String? ?? "",
+          "text": a["text"] as String? ?? "",
+        });
         return null;
       case "aktiv":
         return await _kanal.invokeMethod<bool>("aktiv") ?? false;

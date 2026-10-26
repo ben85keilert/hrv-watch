@@ -32,7 +32,8 @@ import io.flutter.plugin.common.MethodChannel;
  *
  * <p>Methoden (Dart → Java): {@code starten} (titel, zeile2, zeile3, laeuft) → bool,
  * {@code zeigen} (titel, zeile2, zeile3) → bool, {@code zustand} (laeuft) → bool,
- * {@code beenden}, {@code aktiv} → bool. Tasten (Java → Dart): {@code taste}
+ * {@code beenden}, {@code aktiv} → bool, {@code warnen} (titel, text): eine eigene
+ * Benachrichtigung mit hoher Wichtigkeit — das Band vibriert und zeigt sie (Gurt prüfen). Tasten (Java → Dart): {@code taste}
  * (taste: play, pause, stop, weiter, zurueck).
  *
  * <p>Das Kotlin der Sonde ({@code hrv-watch/sonde}, {@code AnzeigeDienst}) ist die
@@ -43,7 +44,10 @@ import io.flutter.plugin.common.MethodChannel;
 public class FletMedienPlugin implements FlutterPlugin, MethodChannel.MethodCallHandler {
     private static final String TAG = "FletMedien";
     private static final String KANAL = "uhr";
+    private static final String WARN_KANAL = "uhr_warnung";
     private static final int BENACHRICHTIGUNG_ID = 4714;
+    private static final int WARNUNG_ID = 4715;
+    private static final long WARNUNG_DAUER_MS = 60_000L;
     private static final long TASTEN =
             PlaybackState.ACTION_PLAY | PlaybackState.ACTION_PAUSE | PlaybackState.ACTION_PLAY_PAUSE
                     | PlaybackState.ACTION_STOP | PlaybackState.ACTION_SKIP_TO_NEXT
@@ -105,6 +109,12 @@ public class FletMedienPlugin implements FlutterPlugin, MethodChannel.MethodCall
                     break;
                 case "aktiv":
                     result.success(session != null);
+                    break;
+                case "warnen":
+                    String wt = call.argument("titel");
+                    String wx = call.argument("text");
+                    warnen(wt == null ? "" : wt, wx == null ? "" : wx);
+                    result.success(null);
                     break;
                 default:
                     result.notImplemented();
@@ -208,6 +218,44 @@ public class FletMedienPlugin implements FlutterPlugin, MethodChannel.MethodCall
         k.setSound(null, null);
         k.enableVibration(false);
         nm.createNotificationChannel(k);
+    }
+
+    private void warnKanalAnlegen() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
+        NotificationManager nm = (NotificationManager) kontext.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (nm == null || nm.getNotificationChannel(WARN_KANAL) != null) return;
+        NotificationChannel k = new NotificationChannel(WARN_KANAL, "Warnungen der Messung",
+                NotificationManager.IMPORTANCE_HIGH);
+        k.setDescription("Gurt prüfen und andere Warnungen während der Messung");
+        k.enableVibration(true);
+        nm.createNotificationChannel(k);
+    }
+
+    /** Eine Warnung als eigene Benachrichtigung — unabhängig von der Session. */
+    private void warnen(String titel, String text) {
+        NotificationManager nm = (NotificationManager) kontext.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (nm == null) return;
+        warnKanalAnlegen();
+        Notification.Builder b = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                ? new Notification.Builder(kontext, WARN_KANAL)
+                : new Notification.Builder(kontext).setPriority(Notification.PRIORITY_HIGH);
+        b.setSmallIcon(android.R.drawable.ic_dialog_alert)
+                .setContentTitle(titel)
+                .setContentText(text)
+                .setAutoCancel(true)
+                .setTimeoutAfter(WARNUNG_DAUER_MS)
+                .setCategory(Notification.CATEGORY_ALARM)
+                .setVisibility(Notification.VISIBILITY_PUBLIC);
+        Intent start = kontext.getPackageManager().getLaunchIntentForPackage(kontext.getPackageName());
+        if (start != null) {
+            b.setContentIntent(PendingIntent.getActivity(kontext, 1, start,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
+        }
+        try {
+            nm.notify(WARNUNG_ID, b.build());
+        } catch (SecurityException e) {
+            Log.w(TAG, "Warnung nicht erlaubt", e);
+        }
     }
 
     private void benachrichtigen() {

@@ -22,6 +22,7 @@ if verfuegbar(page):                              # nur in der gebauten Android-
     await uhr.starten("HF 122 ↑", "RMSSD 17 ms", "Aufnahme 12 min")
     await uhr.zeigen("Gipfel 141", "Tal 95, vor 0:45", "Aufnahme 12 min")  # nur bei Änderung
     await uhr.zustand(False)                      # PAUSED: das Band zeigt ▶ statt ⏸
+    await uhr.warnen("Gurt prüfen", "23 % Artefakte")  # Benachrichtigung, Band vibriert
     await uhr.beenden()
 ```
 

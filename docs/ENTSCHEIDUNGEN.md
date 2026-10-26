@@ -4,7 +4,7 @@ Protokoll, neueste oben. Status: offen → entschieden → umgesetzt oder verwor
 
 | # | Datum | Thema | Status |
 |---|---|---|---|
-| 7 | 2026-10-26 | Seiten am Band: welche Werte, Auswahl in den Einstellungen, ⏯ je Seite | Vorschlag Ben + Claude, Ben entscheidet |
+| 7 | 2026-10-26 | Seiten am Band: welche Werte, Auswahl in den Einstellungen, ⏯ je Seite, Gurt-Warnung | umgesetzt (trainingsapp 0.3.22, am Gerät offen) |
 | 6 | 2026-10-26 | Uhranbindung: Werte aus der trainingsapp, Kanäle statt Geräte, Uhren-Apps in hrv-watch | umgesetzt (a–d, 26.10., am Gerät bestätigt: Seiten, ▶, ⏯-Marke); Wear OS offen |
 | 5 | 2026-10-26 | Fit3 bleibt Textanzeige; Kurve braucht eine Wear-OS-Uhr | Vorschlag Claude, Ben entscheidet |
 | 4 | 2026-10-26 | Sonde aus dem Terminal bauen (Gradle-Gerüst im Repo), kein Android Studio | umgesetzt |
@@ -46,7 +46,20 @@ zurücksetzen, auf 5 den Beginn der Erholung setzen.
 - Einstellung: Kontrollkästchen je Seite unter „Uhr am Handgelenk“, HF immer an, Reihenfolge
   fest, ▶ blättert nur durch die angekreuzten.
 
-**Entscheidung:** offen, Ben.
+**Entscheidung (Ben, 26.10.):** Timer-Abschnitt und GPS-Tempo kommen mit. Die Gurt-Warnung
+ist kein Blatt, sondern eine Meldung: die trainingsapp warnt selbst und reicht sie an die
+Uhr weiter. Einstellung wie vorgeschlagen. Seiten zusammenlegen, wo es geht.
+
+**Umsetzung (26.10., Claude, trainingsapp 0.3.22):** fünf Seiten in `core/uhr_seiten.py`:
+1 `HF 148 ↑ | RR 492 · α1 0,62`, 2 `Atmung 6,0/min | RMSSD 45 ms`, 3 `Gipfel 141 | Tal 95, vor
+0:45 | ⏯ neu ab jetzt`, 4 `HRR30 17 | HRR60 in 20 s | ab HF 160 · ⏯ neu`, 5 `Belastung 2/8 |
+Rest 0:45 · 5:12/km | 2,3 km · 12 min`. ⏯ je Seite (`TASTE_JE_SEITE`), Kontrollkästchen unter
+„Uhr am Handgelenk“ (`HrvEinstellungen.uhr_seiten`). Atemfrequenz live in hrv-core
+(`LiveFenster.atemfrequenz`, 60 s, Modus Atemübung). Gurt-Warnung: `LiveFenster.artefaktanteil`
+(60 s) → `core/gurt_warnung.Artefaktwache` im Messlauf (ab 10 %, Entwarnung unter 5 %, Alarm
+höchstens alle 2 min) → rote Zeile in der Statuskarte der Messung, Zeile 3 am Band, und
+`flet_medien.warnen` als Benachrichtigung mit Vibration (Kanal „Warnungen der Messung“; in
+Galaxy Wearable müssen Benachrichtigungen der trainingsapp an sein). Am Gerät noch nicht geprüft.
 
 ---
 
