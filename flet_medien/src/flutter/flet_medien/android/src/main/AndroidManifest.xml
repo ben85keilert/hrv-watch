@@ -1,0 +1,7 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Die Medien-Benachrichtigung (MediaStyle) zeigt die Session in der
+         Mediensteuerung; ohne POST_NOTIFICATIONS (ab 13) bleibt sie unsichtbar,
+         die Session selbst gibt es trotzdem. Die Laufzeitabfrage macht flet_ble
+         beim Start des Messdienstes. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+</manifest>

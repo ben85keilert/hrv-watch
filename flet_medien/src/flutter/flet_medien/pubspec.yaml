@@ -1,0 +1,27 @@
+name: flet_medien
+description: Flet-Service für eine MediaSession (Android) — drei Textzeilen für Uhren und Bänder, Tasten zurück nach Python
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: ">=3.44.0"
+
+dependencies:
+  flet: ^1.0.3
+  flutter:
+    sdk: flutter
+
+# Android-Plugin (android/, Java): MediaSession, Benachrichtigung, Tasten.
+# Keine weiteren Pakete — nur Android-Framework (android.media.session).
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: de.hrvwatch.flet_medien
+        pluginClass: FletMedienPlugin
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0

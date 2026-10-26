@@ -4,8 +4,8 @@ HRV-Werte am Handgelenk anzeigen. Das Handy hält die Verbindung zum Sensor (Pol
 später andere) und rechnet; die Uhr zeigt nur an: Herzfrequenz, RMSSD, Intervalle,
 Trainingszustand, durchblätterbar, nach Möglichkeit mit den Tasten der Uhr.
 
-> Stand 26.10.2026: Startpaket, am Gerät noch nichts geprüft. Erster Schritt ist der Testplan
-> mit der Sonde; danach entscheidet sich, was aus diesem Repo wird.
+> Stand 26.10.2026: Sonde am Fit3 getestet (Weg 1 trägt für Text, keine Kurve), `flet_medien`
+> für die trainingsapp gebaut; Befunde in `docs/TESTPLAN_fit3.md`, Entscheidungen 4 bis 6.
 
 ## Woher das kommt
 
@@ -38,15 +38,18 @@ hrv-watch/
 │   ├── ENTSCHEIDUNGEN.md     Protokoll, neueste oben
 │   ├── TESTPLAN_fit3.md      Test am Gerät: Schritte, Fragen, Protokoll
 │   └── geraete.md            Welche Uhr kann was: Fit3, Wear OS, Garmin, Bangle.js, PineTime, Apple
-└── sonde/                    Android-Wegwerf-App (Kotlin): Medien- und Benachrichtigungskanal,
-                              Simulation oder echter H10, Seiten blättern per Band-Tasten
+├── sonde/                    Android-Wegwerf-App (Kotlin): Medien- und Benachrichtigungskanal,
+│                             Simulation oder echter H10, Seiten blättern per Band-Tasten
+└── flet_medien/              Flet-Erweiterung (Python + Dart + Java) für die trainingsapp:
+                              drei Textzeilen als MediaSession, Tasten zurück nach Python
 ```
+
+`flet_medien` bindet die trainingsapp wie hrv-core als Schwesterordner ein (`../hrv-watch/flet_medien`
+in `pyproject.toml`, Commit in `hrv-watch.ref`). Die Seiten selbst baut dort
+`core/uhr_seiten.py` aus den Live-Werten (ENTSCHEIDUNGEN #6). Die Sonde bleibt als Referenz liegen.
 
 Später dazu, je nach Befund:
 
-- `flet_medien/` — Flet-Erweiterung (Dart + Kotlin) nach dem Muster von `trainingsapp/erweiterungen/flet_ble`,
-  die trainingsapp die `MediaSession` gibt. Dann schreibt die trainingsapp die Seiten, mit
-  hrv-core-Werten, Zonen und Limits, die sie schon hat. Die Sonde ist danach Geschichte.
 - `wearos/` — eigene Uhren-App (Kotlin/Compose for Wear OS) für Galaxy Watch 4+ oder Pixel
   Watch, falls eine solche Uhr dazukommt. Erst dann stellt sich die Frage, ob die Uhr den H10
   selbst verbindet oder nur Anzeige des Handys ist (`docs/geraete.md`).

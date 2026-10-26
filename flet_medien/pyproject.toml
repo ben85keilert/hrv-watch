@@ -1,0 +1,21 @@
+[project]
+name = "flet-medien"
+version = "0.1.0"
+description = "Flet-Erweiterung: Werte als Mediensteuerung (MediaSession) für Uhren und Bänder, Tasten zurück nach Python"
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [{ name = "Ben Keilert" }]
+# Nur flet — die MediaSession ist Android (Java). Version im Gleichschritt mit der App (flet==1.0.*).
+dependencies = ["flet>=1.0.3"]
+
+# Wie flet_ble/flet_ton in trainingsapp: der Flutter-Teil landet im Wheel unter
+# flutter/flet_medien, wo serious_python beim `flet build` Erweiterungen sucht.
+[tool.setuptools.package-data]
+"flutter.flet_medien" = ["**/*"]
+
+[tool.setuptools]
+license-files = []
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"

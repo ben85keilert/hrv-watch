@@ -1,0 +1,29 @@
+// Android-Teil von flet_medien: MediaSession und Medien-Benachrichtigung.
+// Wie flet_ble bewusst Java und Groovy, kein Kotlin-Plugin, das zur AGP-Version der
+// Flet-Vorlage passen müsste; nur Android-Framework (android.media.session), keine
+// androidx.media-Abhängigkeit.
+group 'de.hrvwatch.flet_medien'
+version '1.0'
+
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion = flutter.compileSdkVersion
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+
+    defaultConfig {
+        minSdkVersion 24
+    }
+
+    if (project.android.hasProperty("namespace")) {
+        namespace 'de.hrvwatch.flet_medien'
+    }
+}

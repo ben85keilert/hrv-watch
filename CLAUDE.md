@@ -36,5 +36,6 @@ Docstrings, Dokumentation, Antworten und Commit-Messages deutsch.
 ```bash
 # Sonde bauen und aufs Handy (sonde/README.md); kein Android Studio nötig
 cd sonde && ./gradlew assembleDebug && ~/Android/sdk/platform-tools/adb install -r app/build/outputs/apk/debug/app-debug.apk
-# später: flet_medien analog zu trainingsapp/erweiterungen/flet_ble (uv, flet build)
+# flet_medien: wird von ../trainingsapp eingebunden (pyproject.toml dort); Tests laufen dort:
+#   cd ../trainingsapp && uv run pytest tests/test_uhr_seiten.py tests/test_uhr_kanal.py
 ```
