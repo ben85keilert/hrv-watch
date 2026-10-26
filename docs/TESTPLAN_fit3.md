@@ -83,6 +83,12 @@ erscheint als Hintergrund der Mediensteuerung, aber nur beim Öffnen der Ansicht
 unzuverlässig, und die Tasten liegen darüber: als Kurve unbrauchbar. **Die Fit3 taugt für
 HF, RMSSD und Zustand als Text, nicht für eine Kurve.**
 
+**Befund flet_medien aus der trainingsapp (26.10.2026, 0.3.19):** Die Testseite „Test 123 /
+hrv-watch / Uhr“ aus Einstellungen → HRV-Messung → „Uhr am Handgelenk“ erscheint am Band.
+Damit ist der Weg ohne Sonde bestätigt; die Messwerte selbst kamen wegen eines Python-Fehlers
+(`jetzt_s`) erst ab 0.3.20 (ENTSCHEIDUNGEN #6). Offen: Seiten mit echten Werten, 20 Zeichen je
+Zeile ohne Laufschrift, ⏯ als Marke, ◀ aus der trainingsapp.
+
 **Befund Weg 2 (Benachrichtigung):** noch nicht getestet (Teil 2 offen).
 
 **Entscheidung / nächster Schritt:** Vorschlag in ENTSCHEIDUNGEN #5: Fit3 als Textanzeige
