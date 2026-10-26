@@ -4,7 +4,7 @@ Protokoll, neueste oben. Status: offen → entschieden → umgesetzt oder verwor
 
 | # | Datum | Thema | Status |
 |---|---|---|---|
-| 6 | 2026-10-26 | Uhranbindung: Werte aus der trainingsapp, Kanäle statt Geräte, Uhren-Apps in hrv-watch | umgesetzt (a–c, 26.10.); DFA α1 live und Wear OS offen |
+| 6 | 2026-10-26 | Uhranbindung: Werte aus der trainingsapp, Kanäle statt Geräte, Uhren-Apps in hrv-watch | umgesetzt (a–d, 26.10., noch nicht am Gerät); Wear OS offen |
 | 5 | 2026-10-26 | Fit3 bleibt Textanzeige; Kurve braucht eine Wear-OS-Uhr | Vorschlag Claude, Ben entscheidet |
 | 4 | 2026-10-26 | Sonde aus dem Terminal bauen (Gradle-Gerüst im Repo), kein Android Studio | umgesetzt |
 | 3 | 2026-10-25 | Sonde als eigene Kotlin-App, nicht als Flet-Erweiterung | Vorschlag Claude, Ben entscheidet |
@@ -68,8 +68,9 @@ feingranulares PAT nur mit Leserecht auf hrv-watch, als `token:` im Checkout-Sch
 `hrv-watch/flet_medien` (Python, Dart, Java; MediaSession ohne androidx), (c)
 `ui/geraete/flet_medien_kanal.py` mit Takt, Tasten und Marke, Schalter unter Einstellungen →
 HRV-Messung → „Uhr am Handgelenk“, `pyproject.toml`, `hrv-watch.ref`, CI- und APK-Workflow.
-Noch nicht am Gerät gebaut und geprüft (`flet build`); die Session meldet vorerst immer PLAYING,
-damit ⏯ zuverlässig als Marke ankommt. Offen: (d) DFA α1 live in hrv-core, (e) Wear OS.
+(d) `LiveFenster.dfa_a1()` in hrv-core (200 gute Schläge, Rechnung wie in der Aufzeichnung,
+Artefaktgrenze 3 %), im Kanal alle 5 s und nur bei EKG-Gurten. Die Session meldet vorerst
+immer PLAYING, damit ⏯ zuverlässig als Marke ankommt. Am Gerät noch nicht geprüft. Offen: (e) Wear OS.
 
 **Folge:** Die trainingsapp kennt Kanäle, keine Uhren. Jede neue Uhr kostet entweder nichts
 (zeigt Medien oder Benachrichtigungen) oder eine App in hrv-watch plus höchstens einen Kanal.
