@@ -4,12 +4,51 @@ Protokoll, neueste oben. Status: offen → entschieden → umgesetzt oder verwor
 
 | # | Datum | Thema | Status |
 |---|---|---|---|
-| 6 | 2026-10-26 | Uhranbindung: Werte aus der trainingsapp, Kanäle statt Geräte, Uhren-Apps in hrv-watch | umgesetzt (a–d, 26.10., Kanal am Gerät bestätigt); Wear OS offen |
+| 7 | 2026-10-26 | Seiten am Band: welche Werte, Auswahl in den Einstellungen, ⏯ je Seite | Vorschlag Ben + Claude, Ben entscheidet |
+| 6 | 2026-10-26 | Uhranbindung: Werte aus der trainingsapp, Kanäle statt Geräte, Uhren-Apps in hrv-watch | umgesetzt (a–d, 26.10., am Gerät bestätigt: Seiten, ▶, ⏯-Marke); Wear OS offen |
 | 5 | 2026-10-26 | Fit3 bleibt Textanzeige; Kurve braucht eine Wear-OS-Uhr | Vorschlag Claude, Ben entscheidet |
 | 4 | 2026-10-26 | Sonde aus dem Terminal bauen (Gradle-Gerüst im Repo), kein Android Studio | umgesetzt |
 | 3 | 2026-10-25 | Sonde als eigene Kotlin-App, nicht als Flet-Erweiterung | Vorschlag Claude, Ben entscheidet |
 | 2 | 2026-10-25 | Rechnung und Sensor bleiben in trainingsapp/hrv-core; hrv-watch ist nur Anzeige | Vorschlag Claude, Ben entscheidet |
 | 1 | 2026-10-25 | Eigenes Repo `hrv-watch` statt Ordner in hrv-research oder trainingsapp | Vorschlag Claude, Ben entscheidet |
+
+## 7 — Seiten am Band: welche Werte, Auswahl, ⏯ je Seite
+
+**Frage (Ben, 26.10.):** Welche Werte lohnen sich am Handgelenk für die Trainingssteuerung,
+und wie wählt man sie? HF ist gesetzt. RMSSD schwankt akut stark und taugt eher für die
+Auswertung; SDNN braucht lange Abschnitte. HF-Bereiche sind noch nicht entschieden (Maximal-HF
+gemessen oder Formel, Ruhe-HF eingetragen), also vorerst Rohwerte. Später HRR30/HRR60 aus
+hrv-research.
+
+**Bens Vorschlag:** 1 HF mit RR darunter · 2 Atemfrequenz und RMSSD (Atemübungen) · 3 DFA α1 ·
+4 HF-Gipfel und -Tal · 5 HRR30 / HRR60. ⏯ je Seite: auf 1–3 Marke, auf 4 Gipfel und Tal
+zurücksetzen, auf 5 den Beginn der Erholung setzen.
+
+**Claudes Anmerkungen:**
+
+- ⏯ je Seite ist technisch einfach: der Kanal kennt die Seite und verteilt die Taste. Es ist
+  auch der einzige Weg zu mehr Funktionen, denn das Band liefert zuverlässig nur ▶ und ⏯. Damit
+  die Taste nicht auf der falschen Seite wirkt, nennt Zeile 3 auf jeder Seite, was ⏯ tut
+  („⏯ Marke“, „⏯ Neu“, „⏯ Start“), und der Effekt ist sofort am Band sichtbar.
+- Seite 4: Gipfel und Tal **seit dem letzten ⏯** (bzw. seit Verbinden), nicht mehr nur die
+  letzten 150 s; dazu „vor m:ss“ des Gipfels. Die HF-Reihe reicht so weit wie der Live-Puffer
+  (Einstellung Live-Verlauf, Vorgabe 30 min).
+- Seite 5: ⏯ setzt t0 = Ende der Belastung; HRR30 = HF(t0) − HF(t0+30 s), HRR60 analog, HF
+  jeweils als 5-s-Mittel. Bis dahin zählt die Seite hoch („HRR30 in 12 s“). Derselbe Druck
+  setzt eine Notiz „HRR“ in die Aufnahme, damit die Auswertung den Punkt kennt. Fenster und
+  Mittelung gleichen wir mit hrv-research ab, bevor der Wert in die Auswertung wandert.
+- Seite 2: Atemfrequenz live gibt es noch nicht; hrv-core hat `atmung.atemfrequenz` für
+  Fenster (Modus Atemübung). Nötig ist `LiveFenster.atemfrequenz()` wie `dfa_a1()`: letzte 60 s,
+  alle 5 s. Unter Belastung „–“ statt Zahl.
+- Vergessen? Zwei Kandidaten, beide keine HRV: der Timer-Abschnitt beim Intervallplan
+  („Abschnitt 3/8, Rest 0:45“) und das GPS-Tempo. Und ein Gurt-Hinweis in Zeile 3, wenn der
+  Artefaktanteil steigt („Gurt prüfen“), weil ein rutschender Gurt DFA α1 entwertet.
+- Einstellung: Kontrollkästchen je Seite unter „Uhr am Handgelenk“, HF immer an, Reihenfolge
+  fest, ▶ blättert nur durch die angekreuzten.
+
+**Entscheidung:** offen, Ben.
+
+---
 
 ## 6 — Uhranbindung: Werte aus der trainingsapp, Kanäle statt Geräte
 
@@ -74,7 +113,9 @@ immer PLAYING, damit ⏯ zuverlässig als Marke ankommt. **Am Gerät (26.10., tr
 die Testseite aus den Einstellungen kam am Band an, der Kanal Python → Dart → MediaSession →
 Galaxy Wearable trägt also. Werte kamen erst mit 0.3.20: der Kanal hatte `jetzt_s` am
 Messlauf als Attribut statt als Methode gelesen, und die Testattrappe hatte den Fehler
-mitgemacht; seitdem läuft ein Test gegen den echten Messlauf mit Simulator. Offen: (e) Wear OS.
+mitgemacht; seitdem läuft ein Test gegen den echten Messlauf mit Simulator. 0.3.20 stürzte beim
+ersten ▶ ab (Flet löst `on_taste` mit String-Annotationen nicht auf, wie flet_ble), 0.3.21: Seiten,
+▶ und ⏯-Marke am Band bestätigt (Ben, 26.10.). Offen: (e) Wear OS.
 
 **Folge:** Die trainingsapp kennt Kanäle, keine Uhren. Jede neue Uhr kostet entweder nichts
 (zeigt Medien oder Benachrichtigungen) oder eine App in hrv-watch plus höchstens einen Kanal.
