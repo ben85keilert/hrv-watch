@@ -1,12 +1,12 @@
 # Welche Uhr kann was
 
-Stand 25.10.2026, Aktenlage; am Gerät geprüft ist nichts. Spalte „Anzeige" meint: Kann das
+Stand 26.10.2026; am Gerät geprüft ist nur die Fit3 (Zeile 1), der Rest ist Aktenlage. Spalte „Anzeige" meint: Kann das
 Handy bestimmen, was auf der Uhr steht? Spalte „Sensor direkt": Kann die Uhr den H10 selbst
 per BLE verbinden, ohne Handy?
 
 | Gerät | Plattform | Eigene App | Anzeige vom Handy | Sensor direkt | Einschätzung |
 |---|---|---|---|---|---|
-| **Samsung Galaxy Fit3** (vorhanden) | proprietäres RTOS, nur Galaxy Wearable | nein, kein SDK | nur über Medien-, Benachrichtigungs-, Wetterkanal | nein | Testplan; wenn Weg 1 trägt, ausreichend für HF/RMSSD/Zustand |
+| **Samsung Galaxy Fit3** (vorhanden) | proprietäres RTOS, nur Galaxy Wearable | nein, kein SDK | nur über Medien-, Benachrichtigungs-, Wetterkanal | nein | **Am Gerät geprüft 26.10.2026:** Medienkanal trägt für drei Textzeilen im Sekundentakt, ▶ und ⏯ funktionieren. Keine Kurve: Blockzeichen fehlen, Cover nur als Hintergrund hinter den Tasten und unzuverlässig geladen. Reicht für HF/RMSSD/Zustand als Text (`TESTPLAN_fit3.md`, ENTSCHEIDUNGEN #5) |
 | Samsung Galaxy Watch 4 bis 8, Watch FE | Wear OS (ab 3) | ja, Kotlin/Compose, Watch Face Format | Wearable Data Layer, Komplikationen, Kacheln | ja, BLE-Central mit Standard-APIs | beste Fortsetzung im Samsung-Lager; gebraucht ab ca. 100 € |
 | Google Pixel Watch 1 bis 4 | Wear OS | ja | wie oben | ja | gleichwertig, nur Google-Handys sind nicht Pflicht |
 | Garmin (Forerunner, Venu, vívoactive) | Connect IQ | Datenfelder, Widgets, Apps (Monkey C) | nur über eigene Connect-IQ-App mit Handy-Kommunikation | Garmin verbindet HRM-Gurte selbst (ANT+/BLE), HRV im Training als Datenfeld möglich | zweiter Ökosystemwechsel; HRV-Logik dann in Monkey C, nicht hrv-core |

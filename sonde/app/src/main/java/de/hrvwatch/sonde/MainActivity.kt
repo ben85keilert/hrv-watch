@@ -14,6 +14,8 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 
 /**
  * Bedienoberfläche der Sonde: eine Spalte Knöpfe, darunter Zustand und Protokoll des Dienstes.
@@ -53,6 +55,8 @@ class MainActivity : AppCompatActivity() {
         knopf("Takt 2 s", AnzeigeDienst.TAKT, 2000L)
         knopf("Takt 5 s", AnzeigeDienst.TAKT, 5000L)
         knopf("Nächste Seite", AnzeigeDienst.SEITE_WEITER)
+        knopf("Stempel an/aus", AnzeigeDienst.STEMPEL_UMSCHALTEN)
+        knopf("Bild (Albumcover) an/aus", AnzeigeDienst.BILD_UMSCHALTEN)
         knopf("Stille abspielen an/aus", AnzeigeDienst.STILLE_UMSCHALTEN)
         knopf("Polar H10 verbinden", AnzeigeDienst.H10_VERBINDEN)
 
@@ -63,7 +67,14 @@ class MainActivity : AppCompatActivity() {
         }
         spalte.addView(status)
 
-        setContentView(ScrollView(this).apply { addView(spalte) })
+        val rolle = ScrollView(this).apply { addView(spalte) }
+        // Ab Android 15 zeichnet die App randlos; Status- und Navigationsleiste freihalten.
+        ViewCompat.setOnApplyWindowInsetsListener(rolle) { v, insets ->
+            val leisten = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(leisten.left, leisten.top, leisten.right, leisten.bottom)
+            insets
+        }
+        setContentView(rolle)
         berechtigungen()
     }
 

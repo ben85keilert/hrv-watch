@@ -31,7 +31,9 @@ import kotlin.math.sin
  * mit fester ID (Weg 2). Werte aus Simulation oder H10Quelle.
  *
  * Tasten vom Band kommen als MediaSession-Callbacks: ◀ ▶ blättern, ⏯ startet/stoppt die Werte.
- * Der Wiedergabezustand bleibt dabei PLAYING, damit das Band die Steuerung nicht ausblendet.
+ * Befund 26.10.: bleibt der Zustand immer PLAYING, schickt das Band bei ⏯ nur „Pause“, nie
+ * „Play“. Deshalb folgt der Zustand dem Lauf (PAUSED bei Stopp), dann schickt das Band
+ * abwechselnd Pause und Play. 400 ms Entprellung gegen Doppelmeldungen.
  */
 @SuppressLint("MissingPermission")
 class AnzeigeDienst : Service() {
@@ -45,12 +47,16 @@ class AnzeigeDienst : Service() {
         const val SEITE_WEITER = "de.hrvwatch.sonde.SEITE_WEITER"
         const val STILLE_UMSCHALTEN = "de.hrvwatch.sonde.STILLE"
         const val H10_VERBINDEN = "de.hrvwatch.sonde.H10"
+        const val STEMPEL_UMSCHALTEN = "de.hrvwatch.sonde.STEMPEL"
+        const val BILD_UMSCHALTEN = "de.hrvwatch.sonde.BILD"
         const val EXTRA_TAKT = "takt_ms"
 
         private const val KANAL_MEDIEN = "medien"
         private const val KANAL_WERTE = "werte"
         private const val ID_MEDIEN = 1
         private const val ID_WERTE = 2
+        /** Cover höchstens alle 10 s neu senden; jede Änderung lädt das Band offenbar neu. */
+        private const val BILD_TAKT_MS = 10_000L
 
         private val zeilen = ArrayDeque<String>()
         @Volatile private var zustandstext = "Dienst nicht gestartet"
@@ -75,12 +81,22 @@ class AnzeigeDienst : Service() {
     private var laeuft = false
     private var medienAn = true
     private var notifAn = false
+    private var stempelAn = true
+    private var bildAn = false
     private var taktMs = 1000L
     private var seite = 0
     private var nr = 0
     private var startZeit = 0L
     private var hf: Int? = null
     private var simZeit = 0.0
+    private var letzterText = ""
+    private var letzteTaste = 0L
+    private var letztesBild: android.graphics.Bitmap? = null
+    private var letztesBildZeit = 0L
+    private var bildNr = 0
+
+    /** HF-Verlauf (Zeitstempel ms, bpm) der letzten 150 s für die Kurve. */
+    private val verlauf = ArrayDeque<Pair<Long, Int>>()
 
     private val takt = object : Runnable {
         override fun run() {
@@ -96,28 +112,20 @@ class AnzeigeDienst : Service() {
         kanaele()
         session = MediaSessionCompat(this, "hrv-watch").apply {
             setCallback(object : MediaSessionCompat.Callback() {
-                override fun onPlay() {
-                    log("Band: Play")
-                    laufen(true)
-                }
+                override fun onPlay() = taste("Play") { laufen(true) }
 
-                override fun onPause() {
-                    log("Band: Pause (Zustand bleibt PLAYING)")
-                    laufen(false)
-                }
+                override fun onPause() = taste("Pause") { laufen(false) }
 
                 override fun onStop() {
                     log("Band: Stop (ignoriert)")
                 }
 
-                override fun onSkipToNext() {
-                    log("Band: weiter")
+                override fun onSkipToNext() = taste("weiter") {
                     seite = (seite + 1) % Seiten.ANZAHL
                     aktualisiere()
                 }
 
-                override fun onSkipToPrevious() {
-                    log("Band: zurück")
+                override fun onSkipToPrevious() = taste("zurück") {
                     seite = (seite + Seiten.ANZAHL - 1) % Seiten.ANZAHL
                     aktualisiere()
                 }
@@ -172,6 +180,17 @@ class AnzeigeDienst : Service() {
                 aktualisiere()
             }
             STILLE_UMSCHALTEN -> if (stille == null) stilleAn() else stilleAus()
+            STEMPEL_UMSCHALTEN -> {
+                stempelAn = !stempelAn
+                letzterText = ""
+                log("Stempel ${if (stempelAn) "an" else "aus"}")
+            }
+            BILD_UMSCHALTEN -> {
+                bildAn = !bildAn
+                letztesBildZeit = 0L
+                letzterText = ""
+                log("Albumcover ${if (bildAn) "an" else "aus"}")
+            }
             H10_VERBINDEN -> {
                 if (quelle == null) {
                     rechnung.leeren()
@@ -208,28 +227,63 @@ class AnzeigeDienst : Service() {
 
     // ---- Ablauf -------------------------------------------------------------------------
 
+    /** Bandtaste mit Entprellung gegen Doppelmeldungen innerhalb von 400 ms. */
+    private fun taste(name: String, aktion: () -> Unit) {
+        val jetzt = SystemClock.elapsedRealtime()
+        if (jetzt - letzteTaste < 400) {
+            log("Band: $name (doppelt, ignoriert)")
+            return
+        }
+        letzteTaste = jetzt
+        log("Band: $name")
+        aktion()
+    }
+
     private fun laufen(an: Boolean) {
         if (an == laeuft) return
         laeuft = an
         handler.removeCallbacks(takt)
         if (an) handler.post(takt)
+        session.setPlaybackState(spielt())
         zustand()
     }
 
     private fun aktualisiere() {
         nr++
         if (quelle == null) simuliere()
+        val jetzt = SystemClock.elapsedRealtime()
+        hf?.let { verlauf.addLast(jetzt to it) }
+        while (verlauf.isNotEmpty() && verlauf.first().first < jetzt - Kurve.FENSTER_MS) verlauf.removeFirst()
+
         val s = aktuelleSeite()
+        val text = "${s.titel}|${s.zeile2}|${s.zeile3}"
+        // Unveränderten Text nicht erneut setzen: jede Metadaten-Änderung setzt am Band die Laufschrift zurück.
+        val bildFaellig = bildAn && jetzt - letztesBildZeit >= BILD_TAKT_MS
+        if (text == letzterText && !bildFaellig) {
+            zustand()
+            return
+        }
+        letzterText = text
+        if (bildFaellig) {
+            bildNr++
+            letztesBild = Kurve.bild(verlauf.toList(), jetzt, bildNr)
+            letztesBildZeit = jetzt
+            log("Cover #$bildNr gesendet")
+        }
+        val bild = if (bildAn) letztesBild else null
         if (medienAn) {
-            session.setMetadata(
-                MediaMetadataCompat.Builder()
-                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, s.titel)
-                    .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, s.zeile2)
-                    .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, s.zeile3)
-                    .build(),
-            )
+            val meta = MediaMetadataCompat.Builder()
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, s.titel)
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, s.zeile2)
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, s.zeile3)
+            if (bild != null) {
+                meta.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, bild)
+                meta.putBitmap(MediaMetadataCompat.METADATA_KEY_ART, bild)
+                meta.putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, bild)
+            }
+            session.setMetadata(meta.build())
             session.setPlaybackState(spielt())
-            NotificationManagerCompat.from(this).notify(ID_MEDIEN, medienNotification(s))
+            NotificationManagerCompat.from(this).notify(ID_MEDIEN, medienNotification(s, bild))
         }
         if (notifAn) {
             NotificationManagerCompat.from(this).notify(ID_WERTE, werteNotification(s))
@@ -239,13 +293,14 @@ class AnzeigeDienst : Service() {
 
     private fun aktuelleSeite(): Anzeige {
         val sekunden = if (startZeit == 0L) 0L else (SystemClock.elapsedRealtime() - startZeit) / 1000
-        return Seiten.seite(seite, hf, rechnung, nr, sekunden, taktMs)
+        val kurve = Kurve.text(verlauf.toList(), SystemClock.elapsedRealtime())
+        return Seiten.seite(seite, hf, rechnung, nr, sekunden, taktMs, stempelAn, kurve)
     }
 
-    /** HF schwingt langsam zwischen 60 und 80, RR passend mit etwas Rauschen. */
+    /** HF pendelt wie beim Intervalllauf zwischen 90 und 140 (Periode etwa 60 s), RR passend mit Rauschen. */
     private fun simuliere() {
         simZeit += taktMs / 1000.0
-        val hfSim = 70.0 + 10.0 * sin(simZeit / 20.0)
+        val hfSim = 115.0 + 25.0 * sin(simZeit / 10.0)
         hf = hfSim.toInt()
         var vergangen = 0.0
         while (vergangen < taktMs) {
@@ -262,6 +317,8 @@ class AnzeigeDienst : Service() {
             append(", Medien ").append(if (medienAn) "an" else "aus")
             append(", Benachrichtigung ").append(if (notifAn) "an" else "aus")
             append(", Stille ").append(if (stille == null) "aus" else "an")
+            append(", Stempel ").append(if (stempelAn) "an" else "aus")
+            append(", Bild ").append(if (bildAn) "an" else "aus")
             append(", Takt ").append(taktMs / 1000).append(" s, Seite ").append(seite)
             append('\n')
             val s = aktuelleSeite()
@@ -275,7 +332,11 @@ class AnzeigeDienst : Service() {
                 PlaybackStateCompat.ACTION_PLAY_PAUSE or PlaybackStateCompat.ACTION_STOP or
                 PlaybackStateCompat.ACTION_SKIP_TO_NEXT or PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS,
         )
-        .setState(PlaybackStateCompat.STATE_PLAYING, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 1f)
+        .setState(
+            if (laeuft) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED,
+            PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN,
+            1f,
+        )
         .build()
 
     // ---- Stille: lautloser Loop, falls das Band Medien nur bei echter Wiedergabe zeigt ----
@@ -335,9 +396,10 @@ class AnzeigeDienst : Service() {
         this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE,
     )
 
-    private fun medienNotification(s: Anzeige): Notification =
+    private fun medienNotification(s: Anzeige, bild: android.graphics.Bitmap? = null): Notification =
         NotificationCompat.Builder(this, KANAL_MEDIEN)
             .setSmallIcon(android.R.drawable.ic_media_play)
+            .setLargeIcon(bild)
             .setContentTitle(s.titel)
             .setContentText(s.zeile2)
             .setSubText(s.zeile3)

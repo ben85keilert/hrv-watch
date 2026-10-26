@@ -21,9 +21,9 @@
 
     <application
         android:allowBackup="false"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@android:drawable/ic_menu_compass"
         android:label="hrv-watch Sonde"
-        android:theme="@style/Theme.AppCompat.Light"
+        android:theme="@style/Theme.AppCompat.Light.NoActionBar"
         tools:ignore="HardcodedText">
 
         <activity

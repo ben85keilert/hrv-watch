@@ -34,6 +34,7 @@ Docstrings, Dokumentation, Antworten und Commit-Messages deutsch.
 ## Befehle
 
 ```bash
-# Sonde: in Android Studio öffnen (sonde/README.md), Run auf dem Handy
+# Sonde bauen und aufs Handy (sonde/README.md); kein Android Studio nötig
+cd sonde && ./gradlew assembleDebug && ~/Android/sdk/platform-tools/adb install -r app/build/outputs/apk/debug/app-debug.apk
 # später: flet_medien analog zu trainingsapp/erweiterungen/flet_ble (uv, flet build)
 ```

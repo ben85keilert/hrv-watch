@@ -66,6 +66,6 @@ Zeilenlängen begrenzt das schwächste Gerät (Fit3, Zeichenzahl im Testplan erm
 
 ## Sonde bauen und morgen testen
 
-Anleitung in [`sonde/README.md`](sonde/README.md): frisches Android-Studio-Projekt, Dateien
-hineinkopieren, eine Abhängigkeit ergänzen, aufs Handy. Keine 30 Minuten, wenn Android Studio
-schon läuft. Danach den Testplan abarbeiten und das Protokoll ausfüllen.
+Anleitung in [`sonde/README.md`](sonde/README.md): `./gradlew assembleDebug` im Terminal,
+`adb install`, fertig. Android Studio ist nicht nötig, SDK und JDK 17 sind vom Flet-Build der
+trainingsapp schon da. Danach den Testplan abarbeiten und das Protokoll ausfüllen.
