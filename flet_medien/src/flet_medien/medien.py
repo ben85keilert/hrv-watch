@@ -23,9 +23,12 @@ Befunde am Fit3, die das Protokoll bestimmen: Jede Metadaten-Änderung setzt die
 Laufschrift am Band zurück — ``zeigen`` nur rufen, wenn sich der Text geändert hat.
 Meldet die Session immer PLAYING, schickt das Band bei ⏯ nur „pause“; darum
 ``zustand(laeuft)`` ehrlich setzen, dann wechselt das Band zwischen play und pause.
-"""
 
-from __future__ import annotations
+Kein ``from __future__ import annotations`` in diesem Modul (wie flet_ble): Flet löst
+den Typ der ``on_*``-Felder zur Laufzeit auf und kommt mit String-Annotationen nicht
+zurecht („[resolve error] on_taste: tuple index out of range“, trainingsapp 0.3.20
+beim ersten ▶ am Band, 26.10.2026).
+"""
 
 from dataclasses import dataclass
 
