@@ -72,3 +72,7 @@ Zeilenlängen begrenzt das schwächste Gerät (Fit3, Zeichenzahl im Testplan erm
 Anleitung in [`sonde/README.md`](sonde/README.md): `./gradlew assembleDebug` im Terminal,
 `adb install`, fertig. Android Studio ist nicht nötig, SDK und JDK 17 sind vom Flet-Build der
 trainingsapp schon da. Danach den Testplan abarbeiten und das Protokoll ausfüllen.
+
+## Lizenz
+
+AGPL-3.0 wie hrv-core (`LICENSE`). Öffentliches Repo; es enthält keine Messdaten und keine Personendaten (CLAUDE.md, Regel 1).
