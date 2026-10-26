@@ -1,4 +1,3 @@
-import 'dart:io' show Platform;
 
 import 'package:flet/flet.dart';
 import 'package:flutter/foundation.dart';
