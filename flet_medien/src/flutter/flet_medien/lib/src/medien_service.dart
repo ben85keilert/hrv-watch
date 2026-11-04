@@ -4,7 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 /// Flet-Service „FletMedien": reicht die Aufrufe an das Android-Plugin durch
-/// (Kanal `flet_medien/session`) und meldet Tasten als Ereignis `taste` an Python.
+/// (Kanal `flet_medien/session`) und meldet Tasten als Ereignis `taste` an Python —
+/// mit `t_mono_us`, der monotonen Uhr der Dart-Seite beim Eintreffen.
 ///
 /// Methoden (Python → Dart → Java): `starten` {titel, zeile2, zeile3, laeuft},
 /// `zeigen` {titel, zeile2, zeile3}, `zustand` {laeuft}, `beenden`, `aktiv` → bool,
@@ -14,6 +15,11 @@ class FletMedienService extends FletService {
   FletMedienService({required super.control});
 
   static const MethodChannel _kanal = MethodChannel("flet_medien/session");
+
+  /// Monotone Uhr der Dart-Seite für die Tasten (wie `flet_ble` je Paket): Python rechnet
+  /// sie auf seine Uhr um und setzt die Marke an den Zeitpunkt des Drucks, nicht an die
+  /// Ankunft (Diagnosemodus der trainingsapp, Entscheidung 8).
+  static final Stopwatch _uhr = Stopwatch()..start();
 
   static bool get _istAndroid => !kIsWeb && Platform.isAndroid;
 
@@ -29,7 +35,10 @@ class FletMedienService extends FletService {
   Future<dynamic> _vonAndroid(MethodCall call) async {
     if (call.method == "taste") {
       final a = (call.arguments as Map?) ?? const {};
-      control.triggerEvent("taste", {"taste": a["taste"] as String? ?? ""});
+      control.triggerEvent("taste", {
+        "taste": a["taste"] as String? ?? "",
+        "t_mono_us": _uhr.elapsedMicroseconds,
+      });
     }
     return null;
   }

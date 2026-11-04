@@ -4,7 +4,8 @@ Android zeigt für eine aktive ``MediaSession`` Titel, Interpret und Album in de
 Mediensteuerung, und Galaxy Wearable reicht sie an die Galaxy Fit3 weiter (Befund
 hrv-watch/docs/TESTPLAN_fit3.md, 26.10.2026). Die Zeilen sind frei: Hier stehen
 HF, RMSSD und Intervall-Kennzahlen darin. Die Tasten des Bands (▶ ◀ ⏯) kommen als
-``on_taste`` zurück. ``warnen`` schickt eine Benachrichtigung (Gurt prüfen), die das
+``on_taste`` zurück, mit ``t_mono_us`` (monotone Uhr der Dart-Seite, wie ``flet_ble`` je
+Paket; seit Entscheidung 8 für Diagnosemarken). ``warnen`` schickt eine Benachrichtigung (Gurt prüfen), die das
 Band mit Vibration zeigt.
 
 Die Session lebt im App-Prozess (kein eigener Dienst); am Leben hält den Prozess
@@ -47,6 +48,8 @@ class MedienTasteEvent(ft.Event["FletMedien"]):
     """Eine Taste am Band oder in der Mediensteuerung des Handys."""
 
     taste: str  # play | pause | stop | weiter | zurueck
+    #: Monotone Uhr der Dart-Seite beim Eintreffen (µs) — 0 bei älteren Builds ohne Stempel
+    t_mono_us: int = 0
 
 
 @ft.control("FletMedien")

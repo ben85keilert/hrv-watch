@@ -68,6 +68,20 @@ abonniert 0x2A37". Danach zeigen die Seiten HF und RR vom Gurt; RMSSD ist eine V
 - [ ] Latenz Gurt → Band gefühlt (Puls kurz hochtreiben, Treppe)?
 - [ ] Seite „Intervalle": zählt n hoch, letztes RR um 60000/HF?
 
+## Teil 4: Diagnosemarken mit ⏯ (trainingsapp, Entscheidung 8)
+
+Mit der trainingsapp (neue APK mit `flet_medien` samt Zeitstempel): Einstellungen → HRV-Messung →
+„Diagnosemodus anbieten“ und „⏯ an der Uhr setzt Diagnosemarken“ an, „Uhr am Handgelenk“ an.
+H10 verbinden, „Diagnosemodus“ → „Mit Diagnose aufnehmen“. Am Band steht vorn die Seite
+`Atem 0 · Messung · ⏯ Marke`; mit einer Übung `Wdh 0 · Kniebeuge S1`.
+
+| Frage | Vorgehen | Ergebnis |
+|---|---|---|
+| F10 Kommt jedes ⏯ an, wenn man es einmal je Sekunde drückt? | 20 × ⏯ im Takt, Zahl am Band und in der Leiste am Handy vergleichen | offen |
+| F11 Schluckt Galaxy Wearable schnelle Folgen (2–3 je Sekunde)? | 10 × ⏯ so schnell wie möglich | offen |
+| F12 Wie lange braucht ⏯ bis zur App? | ⏯ und gleichzeitig auf die Leiste am Handy tippen; im Mitschnitt `marke` mit `quelle uhr` gegen `handy` (hrv-research, Bericht Ebene E) | offen |
+| F13 Springt das Band beim Start einer Übung auf die Seite „Diagnose“? | Übung mit Uhr starten | offen |
+
 ## Protokoll
 
 | Datum | Firmware Band | Handy / Android | Galaxy Wearable | Tester |

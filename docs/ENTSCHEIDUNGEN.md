@@ -4,6 +4,7 @@ Protokoll, neueste oben. Status: offen → entschieden → umgesetzt oder verwor
 
 | # | Datum | Thema | Status |
 |---|---|---|---|
+| 8 | 2026-11-04 | Diagnosemodus: Seite „Diagnose“, ⏯ setzt Diagnosemarken, Zeitstempel je Taste | umgesetzt (trainingsapp, neue APK nötig; am Band offen) |
 | 7 | 2026-10-26 | Seiten am Band: welche Werte, Auswahl in den Einstellungen, ⏯ je Seite, Gurt-Warnung | umgesetzt (trainingsapp 0.3.22, am Gerät offen) |
 | 6 | 2026-10-26 | Uhranbindung: Werte aus der trainingsapp, Kanäle statt Geräte, Uhren-Apps in hrv-watch | umgesetzt (a–d, 26.10., am Gerät bestätigt: Seiten, ▶, ⏯-Marke); Wear OS offen |
 | 5 | 2026-10-26 | Fit3 bleibt Textanzeige; Kurve braucht eine Wear-OS-Uhr | Vorschlag Claude, Ben entscheidet |
@@ -11,6 +12,31 @@ Protokoll, neueste oben. Status: offen → entschieden → umgesetzt oder verwor
 | 3 | 2026-10-25 | Sonde als eigene Kotlin-App, nicht als Flet-Erweiterung | Vorschlag Claude, Ben entscheidet |
 | 2 | 2026-10-25 | Rechnung und Sensor bleiben in trainingsapp/hrv-core; hrv-watch ist nur Anzeige | Vorschlag Claude, Ben entscheidet |
 | 1 | 2026-10-25 | Eigenes Repo `hrv-watch` statt Ordner in hrv-research oder trainingsapp | Vorschlag Claude, Ben entscheidet |
+
+## 8 — Diagnosemodus: ⏯ als Diagnosemarke, Zeitstempel je Taste
+
+**Frage (Ben, 4.11.):** Im Diagnosemodus der trainingsapp (`trainingsapp/docs/plan_diagnosemodus.md`)
+sollen Wiederholungen und Atemzüge per Knopfdruck markiert werden — „auch eine Anpassung der Uhr
+hrv-watch wäre möglich, dann ist der Startbutton ein Setzen eines Markers“. P113: Soll ⏯
+außerhalb des Diagnosemodus künftig eine Marke `{quelle: uhr}` tragen?
+
+**Entscheidung (Ben, 4.11.):** Ja, Quelle „Uhr“ (P113). Im Diagnosemodus eine eigene Seite.
+
+**Umsetzung (Claude, 4.11.):**
+
+- `flet_medien` stempelt jede Taste auf der Dart-Seite (`t_mono_us`, Stoppuhr wie `flet_ble`);
+  das Ereignis `MedienTasteEvent` hat das Feld mit Vorgabe 0 (ältere Builds). **Neue APK nötig**
+  (`hrv-watch.ref` in der trainingsapp angehoben).
+- trainingsapp: Seite „Diagnose“ (`core/uhr_seiten.SEITE_DIAGNOSE`) nur im Diagnosemodus, vorn
+  in der Folge: `Wdh 12` · `Kniebeuge S2` · `⏯ Marke`. Startet eine Übung oder ein neuer Satz,
+  springt das Band auf diese Seite. ⏯ dort setzt eine Diagnosemarke der gerade gültigen Art
+  (wie die Leiste am Handy), Quelle „uhr“, Zeit = Druck auf der Uhr der App (umgerechnet).
+- Außerhalb: ⏯ als Marke trägt jetzt `marke {quelle: uhr, art: marke}` (Vertrag §4 der
+  trainingsapp) — unterscheidbar von leeren Notizen.
+- Bleibt (Entscheidung 6): ⏯ startet oder stoppt nie die Aufnahme.
+
+**Am Band prüfen** (TESTPLAN_fit3.md, F9–F11): Weg Band → Handy (Verzug), jedes ⏯ bei einem Druck
+je Sekunde, schnelle Folgen.
 
 ## 7 — Seiten am Band: welche Werte, Auswahl, ⏯ je Seite
 
